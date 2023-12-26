@@ -58,9 +58,31 @@ def enemy(x, y):
     screen.blit(enemyImg, (x, y))
 
 def fire_bullet(x, y):
+    # Declare bullet_state as global before assignment
     global bullet_state
     bullet_state = 'fire'
-    screen.blit(bulletImg, (x + 16, y + 10))
+    screen.blit(bulletImg, (bulletX, bulletY))
+
+    if bulletY <= 0:
+        # プレーヤーに当たった場合、弾を無効にする
+        distance_to_player = math.sqrt(math.pow(bulletX - playerX, 2) + math.pow(bulletY - playerY, 2))
+        if distance_to_player < 27:
+            bullet_state = 'ready'
+
+    if bullet_state is 'fire':
+        fire_bullet(bulletX, bulletY)
+        bulletY -= bulletY_change
+
+        # シールドに当たった場合、弾を無効にする
+        if shield_radius > 0:
+            distance_to_shield = math.sqrt(math.pow(shield_x - bulletX, 2) + math.pow(shield_y - bulletY, 2))
+            if distance_to_shield < shield_radius:
+                bullet_state = 'ready'
+
+        # プレーヤーに当たった場合、弾を無効にする
+        distance_to_player = math.sqrt(math.pow(bulletX - playerX, 2) + math.pow(bulletY - playerY, 2))
+        if distance_to_player < 27:
+            bullet_state = 'ready'
     
 def fire_enemy_bullet(x, y):
     global enemy_bullet_state
@@ -84,17 +106,20 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
         # シールドに当たらない場合
         distance_to_enemy = math.sqrt(math.pow(enemyX - bulletX, 2) + math.pow(enemyY - bulletY, 2))
         if distance_to_enemy < 27:
-            return False
+            return True
         # シールドに当たった場合、敵の弾も無効にする
         distance_to_enemy_bullet = math.sqrt(math.pow(enemyX - bulletX, 2) + math.pow(enemyY - bulletY, 2))
         if distance_to_enemy_bullet < 50:
+            bullet_state = 'ready'
             return False
-            # シールドに当たった場合、敵の弾も無効にする
-            # bullet_state = 'ready'
-            # return False
     # シールドがアクティブでない場合、通常の当たり判定を行う
     distance_to_enemy = math.sqrt(math.pow(enemyX - bulletX, 2) + math.pow(enemyY - bulletY, 2))
     if distance_to_enemy < 27:
+        return True
+
+    # プレーヤーとの当たり判定
+    distance_to_player = math.sqrt(math.pow(bulletX - playerX, 2) + math.pow(bulletY - playerY, 2))
+    if distance_to_player < 27:
         return True
 
     return False
@@ -108,7 +133,7 @@ class Multishot:
         """
         self.playerX, self.playerY = playerX, playerY
         self.power = power
-        self.image = pygame.image.load('ex05/bullet.png')
+        self.image = pygame.image.load('bullet.png')
         self.bullets_locate = [[self.playerX, self.playerY]]*power   # 弾の現在地のリスト
         self.bullet_speed = bulletY_change  # 弾の進むスピード
         self.is_arrive = [False] * power  # 弾が存在するか否かのリスト

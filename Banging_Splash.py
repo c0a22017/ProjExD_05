@@ -2,6 +2,8 @@ import pygame
 from pygame import mixer
 import random
 import math
+#キーボードモジュールの追加
+import keyboard
 
 pygame.init()
 
@@ -21,8 +23,8 @@ enemyY = random.randint(50, 150)
 enemyX_change, enemyY_change = 4, 40
 
 # Bullet
-bulletImg = pygame.image.load('ex05/bullet.png')
-bulletX, bulletY = 0, 480
+bulletImg = pygame.image.load('bullet.png')
+bulletX, bulletY = 0,  480
 bulletX_change, bulletY_change = 0, 3
 bullet_state = 'ready'
 
@@ -90,26 +92,31 @@ while running:
     elif playerX >= 736:
         playerX = 736
 
-    #ここ
-    # Shield
-    if shield_state == 'active':
-        draw_shield(playerX, playerY)
-
-
-    # Enemy
-    if enemyY > 440:
-        break
+            
+    
     enemyX += enemyX_change
     if enemyX <= 0: #左端に来たら
-        enemyX_change = 1#4 
+        enemyX_change = 2
         enemyY += enemyY_change
     elif enemyX >=736: #右端に来たら
-        enemyX_change = -1#-4
+        enemyX_change = -2
         enemyY += enemyY_change
 
-    #ここ
-    if shield_state == 'active' and isCollision(enemyX, enemyY, playerX, playerY, shield_radius, 32):
-        shield_state = 'ready'
+    # Game Over
+    elif enemyY > 440:
+        enemyX_change = 0
+        enemyY_change = 0
+        font = pygame.font.SysFont(None, 125)
+        message = font.render("Game Over", False, (250, 250, 250))
+        screen.blit(message, (170, 200))
+        if  keyboard.is_pressed("Enter"):
+            break
+
+    collision = isCollision(enemyX, enemyY, bulletX, bulletY)
+    if collision:
+        bulletY = 480
+        bullet_state = 'ready'
+        score_value += 1
         enemyX = random.randint(0, 736)
         enemyY = random.randint(50, 150)
 

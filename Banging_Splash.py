@@ -49,6 +49,10 @@ def sound_beam():
     pygame.mixer.music.load("ex05/laser.wav") #読み込み
     pygame.mixer.music.play(1) #再生
 
+def sound_back():
+    pygame.mixer.init() #初期化
+    pygame.mixer.music.load("ex05/background.wav") #読み込み
+    pygame.mixer.music.play() #再生
     
 
 def player(x, y):
@@ -183,9 +187,10 @@ def isPlayerHit(playerX, playerY, enemy_bulletX, enemy_bulletY):
 
 # gaugeの値設定
 gauge_value = 0
-gauge_max = 5
+gauge_max = 3
 font_gauge = pygame.font.Font(None, 40)
 font_gauge_power = pygame.font.Font(None, 30)
+font_gauge_power_max = pygame.font.Font(None, 30)
 
 """
 gaugeの描画設定
@@ -198,11 +203,10 @@ def gauge():
     pygame.draw.rect(screen, (255, 0, 0), [20, 80, gauge_max * 20, 20])  #　赤のゲージ
     pygame.draw.rect(screen, (0, 255, 0), [20, 80, gauge_value * 20, 20])  # 緑のゲージ
     text_gauge_power = font_gauge_power.render("POWER"+str(gauge_value), True, (0,255,0))   # 描画する文字列の設定
-    screen.blit(text_gauge_power, [20, 130])# 文字列の表示位置
+    screen.blit(text_gauge_power, [20, 120])# 文字列の表示位置
+    text_gauge_power_max = font_gauge_power_max.render("POWER MAX"+str(gauge_max),True,(255,0,0))
+    screen.blit(text_gauge_power_max,[20,140])
 
-# 変数の初期化
-gauge_value = 0
-gauge_max = 5
 # ...（他の初期化処理）
 shield_timer = 0  # shield_timer 変数を追加
 shield_x = 0  # shield_x 変数を追加
@@ -226,17 +230,23 @@ while running:
             if event.key == pygame.K_RIGHT:
                 playerX_change = 7.0#1.5
             if event.key == pygame.K_SPACE:
+                
+                if bullet_state is 'ready':
+                    bulletX = playerX
+                    fire_bullet(bulletX, bulletY)
+                    sound_beam()
+
                 if event.key == pygame.K_SPACE:
                     if bullet_state == 'ready':
                         bulletX = playerX
                         fire_bullet(bulletX, playerY)
-                        sound_beam()
+                        
 
             #capslockを押すとゲージが一増える
             if event.key == pygame.K_CAPSLOCK and gauge_value >= 2:
                 gauge_value  -= 2
                 gauge_max += 1
-                if gauge_max >= 15:
+                if gauge_max >= 10:
                     gauge_max -=1
                     gauge_value += 2
                     
@@ -245,18 +255,18 @@ while running:
                 mshot.summon_bullets()
                 multishot = True  # 散弾状態へ移行
                 gauge_value = 0  # ゲージをすべて消費
-            
+            """
             #なくてもいい        
             elif event.key == pygame.K_CAPSLOCK and gauge_value < 2:
                 event_text = clear_font.render("It's not the time yet...", True, (255,255,0)) # クリアメッセージを作成
                 screen.blit(event_text, (200,250)) # 画面中央に表示
                 pygame.display.update()
                 pygame.time.wait(500) # 5秒間待つ
-
+            """
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerX_change = 0
-
+        
     # Player
     playerX += playerX_change
     if playerX <= 0:
@@ -269,10 +279,10 @@ while running:
         break
     enemyX += enemyX_change
     if enemyX <= 0: #左端に来たら
-        enemyX_change = 2#4
+        enemyX_change = 2
         # enemyY += enemyY_change
     elif enemyX >=736: #右端に来たら
-        enemyX_change = -2#-4
+        enemyX_change = -4
         # enemyY += enemyY_change
         
     # Enemy Bullet Movementの追加
@@ -298,8 +308,8 @@ while running:
         
     # シールドの作成
     if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_LSHIFT and gauge_value >= 1:
-            gauge_value -= 1
+        if event.key == pygame.K_LSHIFT and gauge_value >= 5:
+            gauge_value -= 5
             shield_x = playerX + 31
             shield_y = playerY + 15
             shield_radius = 50
@@ -376,9 +386,10 @@ while running:
             running = False
 
     #ゲージの最大値を文字として表示
-    if gauge_max == 15:
+    if gauge_max == 10:
             text_gauge = font_gauge.render("GAUGE MAX", True, (255,0,0))   # 描画する文字列の設定
-            screen.blit(text_gauge, [20, 150])# 文字列の表示位置
+            screen.blit(text_gauge, [20, 160])# 文字列の表示位置
+            
            
 
     # Bullet Movement
@@ -414,7 +425,8 @@ while running:
         break
 """
     # ゲームクリア
-    if score_value >= 30:
+    if score_value >= 20:
+        sound_back()
         clear_text_1 = clear_font.render("congratulations...", True, (255,255,0)) # クリアメッセージを作成
 
         text_height = clear_text_1.get_height()
@@ -426,15 +438,14 @@ while running:
             screen.blit(clear_text_1, (200, start_y))  # テキストを新しい位置に描画
             pygame.display.update()  # 画面を更新
             start_y -= speed  # テキストのy座標を減らす（上に移動）
-            pygame.time.wait(20)  # 一定時間待つ（テキストの移動速度を制御）
-
-        
+            pygame.time.wait(20)  # 一定時間待つ（テキストの移動速度を制御）    
         break
+        
 
     # guageの描画
     gauge()
 
     player(playerX, playerY)
     enemy(enemyX, enemyY)
-
+    
     pygame.display.update()

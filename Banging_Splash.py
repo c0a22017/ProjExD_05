@@ -308,8 +308,8 @@ while running:
         
     # シールドの作成
     if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_LSHIFT and gauge_value >= 1:
-            gauge_value -= 1
+        if event.key == pygame.K_LSHIFT and gauge_value >= 5:
+            gauge_value -= 5
             shield_x = playerX + 31
             shield_y = playerY + 15
             shield_radius = 50
